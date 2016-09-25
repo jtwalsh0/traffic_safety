@@ -60,6 +60,12 @@ target/
 .drake/
 drake.log
 
+# Data
+input/data/
+
+# ignore psql touch files
+input/psql/
+
 # computation connection info
 default_profile
-
+aws.credentials
