@@ -1,4 +1,5 @@
-https://travis-ci.org/jtwalsh0/traffic_safety.svg?branch=master
+[![Build Status]([![Build Status](https://travis-ci.org/jtwalsh0/traffic_safety.png)])](https://travis-ci.org/jtwalsh0/traffic_safety)
+
 
 # traffic_safety
 
