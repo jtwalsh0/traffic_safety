@@ -1,0 +1,15 @@
+Package: traffic_safety
+Version: 0.1
+Date: 2017-08-29
+Title: Alabama Traffic Safety
+Authors@R: c(person("Joe", "Walsh", role = c("aut", "cre"),
+                     email = "jtwalsh@protonmail.com"))
+Author: Joe Walsh [aut, cre]
+Maintainer: Joe Walsh <jtwalsh@protonmail.com>
+Depends: R (>= 3.1.0), checkpoint, h5, mlr
+Suggests: aws.signature, aws.s3
+Description: This package builds, spatial, temporal,
+   and spatio-temporal models for Alabama crash data
+License: MIT
+URL: https://www.r-project.org, https://github.com/jtwalsh0/traffic_safety
+BugReports: https://github.com/jtwalsh0/traffic_safety/issues
