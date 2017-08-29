@@ -1,3 +1,5 @@
+https://travis-ci.org/jtwalsh0/traffic_safety.svg?branch=master
+
 # traffic_safety
 
 * temporal cross validation
