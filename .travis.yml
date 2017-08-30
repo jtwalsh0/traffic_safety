@@ -1,9 +1,11 @@
 language: r
 cache: packages
 r:
-  - oldrel
   - release
-  - devel
+
+before_install:
+  - sudo apt-get -qq update
+  - sudo apt-get install -y libhdf5-dev
 
 r_packages:
   - covr
