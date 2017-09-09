@@ -1,14 +1,41 @@
 language: r
+sudo: true
 cache: packages
+os:
+  - linux
+dist:
+  - trusty
 r:
   - release
 
+env:
+  global:
+    - PKG_CFLAGS="-pedantic"
+    - _R_CHECK_CRAN_INCOMING_=FALSE
+    - ASAN="-fsanitize=address -fno-omit-frame-pointer"
+    - HDF5_RELEASE_URL="https://support.hdfgroup.org/ftp/HDF5/releases"
+    - LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
+  matrix:
+    - HDF5_VERSION=1.8.14
+    - HDF5_VERSION=1.8.16
+    - HDF5_VERSION=1.10.0-patch1
+    - HDF5_VERSION=1.10.1
+
+addons:
+  apt:
+    packages:
+      - libhdf5-dev
+      - subversion
+      - autoconf
+      - build-essential
+      - libtool
+      - libmagick++-dev
+
 before_install:
   - sudo apt-get -qq update
-  - sudo apt-get install -y libhdf5-dev
 
-r_packages:
-  - covr
+r_github_packages:
+  - jimhester/covr
 
 after_success:
-  - Rscript -e 'library(covr); codecov()'
+  - R --slave --vanilla -e 'library(covr); pc <- package_coverage(); pc; codecov(coverage = pc)'
