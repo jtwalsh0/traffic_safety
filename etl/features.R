@@ -19,7 +19,7 @@ aws.s3::save_object("CareExport1.csv",
 #     geographic_id
 #     add columns of random data, parameter z
 #   output:
-#     store as hdf
+#     store as csv
 
 
 

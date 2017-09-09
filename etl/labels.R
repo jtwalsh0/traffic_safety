@@ -20,5 +20,5 @@ aws.s3::save_object("CareExport1.csv",
 #     geographic_id
 #     rule to generate label (e.g. sum())
 #   output:
-#     store as hdf
+#     store as csv
 
