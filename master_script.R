@@ -20,7 +20,13 @@ require('RPostgreSQL')
 ##########################
 ## CONNECT TO S3
 
-aws.signature::use_credentials(profile = 'joestradamus')
+aws_credentials = fromJSON('credentials.json')$aws
+Sys.setenv(
+  "AWS_ACCESS_KEY_ID" = aws_credentials$AWS_ACCESS_KEY_ID
+  ,"AWS_SECRET_ACCESS_KEY" = aws_credentials$AWS_SECRET_ACCESS_KEY
+  ,"AWS_DEFAULT_REGION" = "us-east-1"
+)
+           
 
 
 
@@ -30,18 +36,18 @@ aws.signature::use_credentials(profile = 'joestradamus')
 ## CONNECT TO DATABASE
 
 # load credentials
-credentials = fromJSON('db_credentials.json')$db
+db_credentials = fromJSON('credentials.json')$db
 
 # creates a connection to the postgres database
 con <- dbConnect(drv = dbDriver('PostgreSQL'),
-                 host = credentials$PGHOST,
-                 dbname = credentials$PGDATABASE,
-                 user = credentials$PGUSER,
-                 password = credentials$PGPASSWORD,
-                 port = credentials$PGPORT)
+                 host = db_credentials$PGHOST,
+                 dbname = db_credentials$PGDATABASE,
+                 user = db_credentials$PGUSER,
+                 password = db_credentials$PGPASSWORD,
+                 port = db_credentials$PGPORT)
 
 # remove credentials
-rm (credentials) 
+rm (db_credentials) 
 
 
 

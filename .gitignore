@@ -1,5 +1,5 @@
 data/
-db_credentials.*
+credentials.*
 
 
 # Byte-compiled / optimized / DLL files
