@@ -6,7 +6,7 @@ create table matrices.features (
     features_csv_id		uuid primary key
     , features_start_year       smallint
     , features_end_year		smallint
-    , features_list		json
+    , features_list		text
     , comments			text
 );
 
