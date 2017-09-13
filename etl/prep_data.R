@@ -8,12 +8,6 @@ raw_data = read.csv(
 )
 
 
-##########################
-## CREATE FEATURES MATRICES
-
-source('etl/features.R')
-
-
 
 
 ##########################
@@ -37,6 +31,8 @@ for(i in 2010:2016){  # years
 
 ##########################
 ## FEATURES GENERATION
+
+source('etl/features.R')
 
 for(i in 2009:2016){  # years 
   for(j in 0:7){  # lookback years
