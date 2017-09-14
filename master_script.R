@@ -11,9 +11,20 @@ checkpoint('2017-08-01')
 require('plm')
 require('mlr')
 require('uuid')
+require('dplyr')
+require('readr')
+require('scales')
+library('ggplot2')
+library('lubridate')
 require('jsonlite')
 require('RPostgreSQL')
 
+
+
+##########################
+## LOAD CONFIGURATION
+project_directory = fromJSON('traffic_safety_config.json')$project_directory
+care_data = fromJSON('traffic_safety_config.json')$files$care_data
 
 
 

@@ -1,0 +1,6 @@
+{
+  "project_directory": "~/traffic_safety",
+  "files": {
+    "care_data": "data/care_data.csv"
+  }
+}
