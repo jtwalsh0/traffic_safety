@@ -1,4 +1,20 @@
 
+
+require('checkpoint')
+checkpoint('2017-08-01', project = 'git-projects/traffic_safety')
+
+
+require('dplyr')
+require('readr')
+require('scales')
+library('ggplot2')
+
+
+configuration = fromJSON(traffic_safety_config.json)
+working_directory = configuration$working_directory
+care_data = configuration$files$care_data
+
+
 raw_df = read_csv(care_data)
 
 
@@ -41,7 +57,7 @@ raw_df %>%
   select(dow) %>%
   ggplot(aes(dow)) + 
     ggtitle('Alabama Traffic Crashes: Day of Week') +
-    xlab('day of the week') + 
+    xlab('') + 
     ylab('# crashes') +
     geom_histogram(stat='count')
 
