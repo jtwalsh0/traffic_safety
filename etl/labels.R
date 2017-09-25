@@ -20,7 +20,7 @@ create_labels_df = function(
   ,labels_start_year = 2010
   ,labels_end_year = 2010
   ,geography = 'County' # should match column name
-  ,label_query = 'all_crash_count' # this doesn't do anything yet
+  ,label_query = 'sum crash count' # this doesn't do anything yet
   ,comments = ''
   ){
   
@@ -62,6 +62,7 @@ create_labels_df = function(
         ,labels_end_year = labels_end_year
         ,geography = geography
         ,label_query = label_query
+        ,creation_time = Sys.time()
         ,comments = comments
         ,stringsAsFactors = FALSE
       )
@@ -83,8 +84,6 @@ create_labels_df = function(
       )
       
       # store in s3
-      #put_object
-      
       aws.s3::put_object(
         file = paste('/tmp', csv_name, sep='/')
         ,object = paste('s3://transportation-safety-data/etl/label_files', csv_name, sep='/')
