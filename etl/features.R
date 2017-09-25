@@ -21,83 +21,129 @@
 create_features_df = function(
   raw_df = raw_data
   ,features_start_year = 2009
-  ,features_end_year = 2011
+  ,features_end_year = 2009
   ,number_cols_random_data = 10
-  ,features_list = ''
+  ,features_list = toString( sort( paste('random', 1:10, sep='_') ) )
   ,comments = ''
   ){
   
-  # subset by time
-  raw_features_df = subset(
-    raw_df
-    ,subset = (Year >= features_start_year & Year <= features_end_year)
-    ,select = c('County', 'Year')
-  )
   
-  # create features dataframe
-  features_df = aggregate(
-    raw_features_df
-    ,list(county = raw_features_df$County, year = raw_features_df$Year)
-    ,FUN = length
-  )
-  rownames(features_df) = paste(features_df$county, features_df$year, sep='_')
-  features_df = subset(features_df, select = 3)
-  names(features_df) = 'crashes'
-  n = nrow(features_df)
+    # sort and stringify features 
+    features_list_sorted = sort(features_list)
+    features_list_sorted_string = toString(features_list_sorted)
   
-  
-  ### ADD FEATURES
-  random_df = data.frame( replicate( number_cols_random_data, rnorm(n) ) )
-  features_df = cbind(features_df, random_df)
-  
+    # check for existing features matrix
+    raw_query = paste('select features_csv_id from matrices.features where'
+                      ,'features_start_year = ?features_start_year'
+                      ,'and features_end_year = ?features_end_year'
+                      ,'and geography = ?geography'
+                      ,'and features_list = ?features_list '
+    )
+    query = sqlInterpolate(ANSI()
+                           ,raw_query
+                           ,features_start_year = features_start_year
+                           ,features_end_year = features_end_year
+                           ,geography = geography
+                           ,features_list = features_list_sorted_string
+    )
+    results = dbGetQuery(con, query)
     
   
+    # only create CSV if it doesn't exist already  
+    if(nrow(results) == 0){
+    
+      # subset by time and collapse to observational units
+      features_df = raw_df %>%
+        filter(Year >= get('features_start_year') & Year <= get('features_end_year')) %>%
+        select(get('geography'), `Year`) %>%
+        distinct()
   
+
+      
+      ###################################
+      ### ADD FEATURES
+      
+      # add crash counts
+      grep_crash_count = grep('crash_count', features_list, ignore.case=TRUE)
+      if(length(grep_crash_count) > 0){
+        crash_counts = raw_df %>%
+          filter(Year >= get('features_start_year') & Year <= get('features_end_year')) %>%
+          select(get('geography'), `Year`) %>%
+          group_by_(get('geography'), 'Year') %>%
+          summarize(`crash_count` = n())
+        features_df = merge(features_df
+                            ,crash_counts
+                            ,by = c(get('geography'), 'Year')
+                            ,all.x = TRUE  # left join
+                            )
+      }
+      
+      # add random features
+      grep_random = grep('random', features_list, ignore.case=TRUE)
+      if(length(grep_random) > 0){
+        n = nrow(features_df)
+        random_df = data.frame( replicate( number_cols_random_data, rnorm(n)))
+        names(random_df) = paste('random', 1:number_cols_random_data, sep='_')
+        features_df = cbind(features_df, random_df)
+      }
+        
+      
+      
+      
+      ###################################
+      ### STORE FEATURES INFO
+      
+      # create unique identifier
+      uuid = UUIDgenerate(use.time = TRUE)
+      
+      # save feature names
+      feature_df_names = names(features_df)[-c(1,2)]
+      feature_df_names_sorted = sort(feature_df_names)
+      feature_df_names_sorted_string = toString(feature_df_names_sorted)
+      
+      # write to database
+      db_row = data.frame(
+        features_csv_id = uuid
+        ,features_start_year = features_start_year
+        ,features_end_year = features_end_year
+        ,features_list = feature_df_names_sorted_string
+        ,creation_time = Sys.time()
+        ,comments = comments
+        ,stringsAsFactors = FALSE
+      )
+      dbWriteTable(
+        con
+        ,c('matrices', 'features')
+        ,db_row
+        ,row.names = FALSE
+        ,append = TRUE
+      )
+      
+      
+      # write to csv 
+      csv_name = paste(
+        uuid
+        ,'csv'
+        ,sep='.'
+      ) 
+      write.csv(
+        features_df 
+        ,paste('/tmp', csv_name, sep='/')
+        ,row.names = TRUE
+      )
+      
+      # store in s3
+      
+      aws.s3::put_object(
+        file = paste('/tmp', csv_name, sep='/')
+        ,object = paste('s3://transportation-safety-data/etl/feature_files', csv_name, sep='/')
+      )
   
-  ### STORE FEATURES INFO
-  
-  # create unique identifier
-  uuid = UUIDgenerate(use.time = FALSE)
-  
-  # save feature names
-  feature_names = paste( unlist( names(features_df) ), collapse=',')
-  
-  # write to database
-  db_row = data.frame(
-    features_csv_id = uuid
-    ,features_start_year = features_start_year
-    ,features_end_year = features_end_year
-    ,features_list = feature_names
-    ,comments = comments
-    ,stringsAsFactors = FALSE
-  )
-  dbWriteTable(
-    con
-    ,c('matrices', 'features')
-    ,db_row
-    ,row.names = FALSE
-    ,append = TRUE
-  )
-  
-  
-  # write to csv 
-  csv_name = paste(
-    uuid
-    ,'csv'
-    ,sep='.'
-  ) 
-  write.csv(
-    features_df 
-    ,paste('/tmp', csv_name, sep='/')
-    ,row.names = TRUE
-  )
-  
-  # store in s3
-  
-  aws.s3::put_object(
-    file = paste('/tmp', csv_name, sep='/')
-    ,object = paste('s3://transportation-safety-data/etl/feature_files', csv_name, sep='/')
-  )
-  
+    } else{  # print uuid if CSV already exists
+      
+      print(paste('Features CSV already exists:', uuid)) 
+    
+    }  
+
 }
 

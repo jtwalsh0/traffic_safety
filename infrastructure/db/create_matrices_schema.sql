@@ -8,8 +8,10 @@ create table matrices.features (
     , features_end_year		smallint
     , geography                 text
     , features_list		text
+    , creation_time             timestamp with time zone
     , comments			text
 );
+create index features_index on matrices.features using btree (features_list);
 
 
 create table matrices.labels (
@@ -18,6 +20,7 @@ create table matrices.labels (
     , labels_end_year		smallint
     , geography                 text
     , label_query		text
+    , creation_time             timestamp with time zone
     , comments			text
 );
 
