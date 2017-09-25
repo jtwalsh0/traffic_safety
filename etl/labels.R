@@ -1,5 +1,3 @@
-# 1. Prep data
-# 2. Create design matrices
 # 3. Create label matrices
 
 
@@ -19,68 +17,82 @@
 
 create_labels_df = function(
   raw_df = raw_data
-  ,labels_start_year = 2012
-  ,labels_end_year = 2012
-  ,label_query = 'all_crash_count'
+  ,labels_start_year = 2010
+  ,labels_end_year = 2010
+  ,geography = 'County' # should match column name
+  ,label_query = 'all_crash_count' # this doesn't do anything yet
   ,comments = ''
   ){
   
-  # subset by entity and time
-  raw_labels_df = subset(
-    raw_df
-    ,subset = (Year >= labels_start_year & Year <= labels_end_year)
-    ,select = c('County', 'Year')
-  )
-  
-  # create labels dataframe
-  labels_df = aggregate(
-    raw_labels_df
-    ,list(County = raw_labels_df$County, Year = raw_labels_df$Year) 
-    ,FUN = length
-  )
-  rownames(labels_df) = paste(labels_df$County, labels_df$Year, sep='_')
-  labels_df = subset(labels_df, select = 3)
-  names(labels_df) = 'y'
-  
-  # create unique identifier
-  uuid = UUIDgenerate(use.time = FALSE)
-  
-  # write to database
-  db_row = data.frame(
-    labels_csv_id = uuid
-    ,labels_start_year = labels_start_year
-    ,labels_end_year = labels_end_year
-    ,label_query = label_query
-    ,comments = comments
-    ,stringsAsFactors = FALSE
-  )
-  dbWriteTable(
-    con
-    ,c('matrices', 'labels')
-    ,db_row
-    ,row.names = FALSE
-    ,append = TRUE
-  )
-  
-  
-  # write to csv 
-  csv_name = paste(
-    uuid
-    ,'csv'
-    ,sep='.'
-  ) 
-  write.csv(
-    labels_df 
-    ,paste('/tmp', csv_name, sep='/')
-    ,row.names = TRUE
-  )
-  
-  # store in s3
-
-  aws.s3::put_object(
-    file = paste('/tmp', csv_name, sep='/')
-    ,object = paste('s3://transportation-safety-data/etl/label_files', csv_name, sep='/')
-  )
+    # check for existing label matrix
+    raw_query = paste('select labels_csv_id from matrices.labels where'
+                      ,'labels_start_year = ?labels_start_year'
+                      ,'and labels_end_year = ?labels_end_year'
+                      ,'and geography = ?geography'
+                      ,'and label_query = ?label_query '
+                      )
+    query = sqlInterpolate(ANSI()
+                           ,raw_query
+                           ,labels_start_year = labels_start_year
+                           ,labels_end_year = labels_end_year
+                           ,geography = geography
+                           ,label_query = label_query
+                           )
+    results = dbGetQuery(con, query)
+    
+    
+    # if labels CSV doesn't exist, create it
+    # otherwise, return the uuid for that CSV
+    if(nrow(results) == 0){
+      
+      # subset by entity and time
+      labels_df = raw_df %>%
+        filter(Year >= get('labels_start_year') & Year <= get('labels_end_year')) %>%
+        select(get('geography'), `Year`) %>%
+        group_by_(get('geography'), 'Year') %>%
+        summarize(`y` = n())
+        
+      # create unique identifier
+      uuid = UUIDgenerate(use.time = TRUE)
+      
+      # write to database
+      db_row = data.frame(
+        labels_csv_id = uuid
+        ,labels_start_year = labels_start_year
+        ,labels_end_year = labels_end_year
+        ,geography = geography
+        ,label_query = label_query
+        ,comments = comments
+        ,stringsAsFactors = FALSE
+      )
+      dbWriteTable(
+        con
+        ,c('matrices', 'labels')
+        ,db_row
+        ,row.names = FALSE
+        ,append = TRUE
+      )
+      
+    
+      # write to csv 
+      csv_name = paste(uuid, 'csv', sep='.') 
+      write.csv(
+        labels_df 
+        ,paste('/tmp', csv_name, sep='/')
+        ,row.names = FALSE
+      )
+      
+      # store in s3
+      #put_object
+      
+      aws.s3::put_object(
+        file = paste('/tmp', csv_name, sep='/')
+        ,object = paste('s3://transportation-safety-data/etl/label_files', csv_name, sep='/')
+      )
+      
+    } else {
+      print(paste('labels CSV already exists:', uuid))  # if the CSV already exists
+    }
   
 }
 

@@ -1,12 +1,12 @@
 
+require('uuid')
+require('dplyr')
+require('readr')
+
 
 ##########################
 ## LOAD DATA
-raw_data = read.csv(
-  '~/Dropbox/Machine Learning/CARE_sample_2009-2016.csv'
-  ,stringsAsFactors = FALSE
-)
-
+raw_df = read_csv(care_data)
 
 
 
@@ -15,15 +15,13 @@ raw_data = read.csv(
 
 source ('etl/labels.R')
 
-for(i in 2010:2016){  # years
-  
+for(i in 2010:2010){  # years
   # test labels generation
   create_labels_df(
-    raw_data
-    ,labels_start_year = i 
+    care_data
+    ,labels_start_year = i
     ,labels_end_year = i
   )
-  
 }
 
 
@@ -32,22 +30,22 @@ for(i in 2010:2016){  # years
 ##########################
 ## FEATURES GENERATION
 
-source('etl/features.R')
-
-for(i in 2009:2016){  # years 
-  for(j in 0:7){  # lookback years
-
-    create_features_df(
-      raw_data
-      ,features_start_year = i-j
-      ,features_end_year = i
-      ,features_list = ''
-      ,number_cols_random_data = 10
-      ,comments = 'testing the code'
-    )
-    
-  }
-}
+# source('etl/features.R')
+# 
+# for(i in 2009:2016){  # years 
+#   for(j in 0:7){  # lookback years
+# 
+#     create_features_df(
+#       raw_data
+#       ,features_start_year = i-j
+#       ,features_end_year = i
+#       ,features_list = ''
+#       ,number_cols_random_data = 10
+#       ,comments = 'testing the code'
+#     )
+#     
+#   }
+# }
 
 
 

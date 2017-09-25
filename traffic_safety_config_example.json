@@ -1,6 +1,7 @@
 {
-  "project_directory": "~/traffic_safety",
+  "working_directory": "~/traffic_safety",
   "files": {
+    "credentials": "credentials.json",
     "care_data": "data/care_data.csv"
   }
 }
