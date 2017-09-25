@@ -58,3 +58,8 @@ source('etl/prep_data.R')
 #source('modeling/modeling.R')
 
 
+##########################
+## DISCONNECT FROM DATABASE
+dbDisconnect(con)
+
+
