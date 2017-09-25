@@ -99,3 +99,17 @@ raw_df %>%
     theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
     geom_histogram(stat='count')
 
+
+# traffic crashes by county
+raw_df %>%
+  select(`County`) %>%
+  group_by(`County`) %>%
+  summarize(y = n()) %>%
+  arrange(desc(y))
+
+raw_df %>%
+  select(`County`, `Year`) %>%
+  group_by(`County`, `Year`) %>%
+  summarize(y = n()) %>%
+  ggplot(aes(`Year`, `y`, group=`County`)) +
+    geom_line()
